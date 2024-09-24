@@ -11,5 +11,11 @@
 	<li><a routerLink="/snack-bar-demo">Snack Bar Demo</a></li>
 	<li><a routerLink="/progress-state-demo">Progress State Demo</a></li>
 </ul>
+
+<form [formGroup]="formGroup">
+	<app-form-value-listener formControlName="myControlName"></app-form-value-listener>
+</form>
+
+<p>Input Value: {{ formGroup.get('myControlName')?.value }}</p>
 <hr />
 <router-outlet></router-outlet>

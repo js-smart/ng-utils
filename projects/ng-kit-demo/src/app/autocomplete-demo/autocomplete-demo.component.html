@@ -6,10 +6,10 @@
 		<autocomplete
 			[data]="cities"
 			[displayWith]="displayWith"
-			[inputFormGroup]="genericFormGroup"
 			[required]="true"
 			bindLabel="location"
 			bindValue="id"
+			formControlName="autocomplete"
 			label="City"
 			placeHolder="Select City">
 		</autocomplete>
@@ -26,8 +26,7 @@
 <h2 style="display: flex; justify-content: center; align-items: center; margin-top: 50px">Auto Complete (Works with Strings)</h2>
 <div style="display: flex; justify-content: center; align-items: center">
 	<form [formGroup]="stringInputFormGroup">
-		<autocomplete [data]="names" [inputFormGroup]="stringInputFormGroup" [required]="true" label="City" placeHolder="Select City">
-		</autocomplete>
+		<autocomplete [data]="names" [required]="true" formControlName="autocomplete" label="City" placeHolder="Select City"> </autocomplete>
 	</form>
 </div>
 <div style="display: flex; justify-content: center; align-items: center; margin-top: 20px">

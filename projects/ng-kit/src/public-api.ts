@@ -39,6 +39,7 @@ export * from './lib/services/mat-snack-bar.service';
 
 // Export progress state
 export * from './lib/util/progress-util';
+export * from './lib/components/test-child/test-child.component';
 
 // Export the ProgressState type
 export type { ProgressState };

@@ -1,19 +1,20 @@
 import {
-  AfterContentChecked,
-  ChangeDetectorRef,
-  Component,
-  ElementRef,
-  Input,
-  input,
-  OnChanges,
-  OnInit,
-  Optional,
-  output,
-  SimpleChanges,
-  ViewChild,
+	AfterContentChecked,
+	ChangeDetectorRef,
+	Component,
+	ElementRef,
+	forwardRef,
+	Input,
+	input,
+	OnChanges,
+	OnInit,
+	Optional,
+	output,
+	SimpleChanges,
+	ViewChild,
 } from '@angular/core';
 import { BehaviorSubject, Observable } from 'rxjs';
-import { FormGroup, ReactiveFormsModule } from '@angular/forms';
+import { ControlValueAccessor, FormControl, NG_VALUE_ACCESSOR, ReactiveFormsModule } from '@angular/forms';
 import { map, startWith } from 'rxjs/operators';
 import { MatAutocompleteModule, MatAutocompleteTrigger } from '@angular/material/autocomplete';
 import { MatOptionSelectionChange } from '@angular/material/core';
@@ -43,18 +44,16 @@ import { AsyncPipe } from '@angular/common';
 		MatIconModule,
 		AsyncPipe,
 	],
+	providers: [{ provide: NG_VALUE_ACCESSOR, useExisting: forwardRef(() => AutocompleteComponent), multi: true }],
 	templateUrl: './autocomplete.component.html',
 })
-export class AutocompleteComponent implements OnInit, OnChanges, AfterContentChecked {
+export class AutocompleteComponent implements ControlValueAccessor, OnInit, OnChanges, AfterContentChecked {
 	/**
 	 * Gets reference inputAutoComplete HTML attribute
 	 */
 	@ViewChild('inputAutoComplete') inputAutoComplete!: ElementRef;
 
-	/**
-	 * Input form group of the auto complete
-	 */
-	@Input() inputFormGroup!: FormGroup;
+	@Input() value: any;
 
 	/**
 	 * Label of the AutoComplete
@@ -86,6 +85,8 @@ export class AutocompleteComponent implements OnInit, OnChanges, AfterContentChe
 	 */
 	bindValue = input('id');
 
+	@Input() formControl: FormControl | undefined;
+
 	/**
 	 * Function that maps an option's control value to its display value in the trigger.
 	 */
@@ -108,18 +109,20 @@ export class AutocompleteComponent implements OnInit, OnChanges, AfterContentChe
 	 * @since 13.0.3
 	 */
 	onSelectionChange = output<any>();
-
 	/**
 	 * BehaviorSubject that shows the current active arrow icon
 	 */
 	arrowIconSubject = new BehaviorSubject('arrow_drop_down');
-
 	/**
 	 * Filtered options when user
 	 */
 	filteredOptions: Observable<any[] | undefined> | undefined;
 
 	constructor(private cdRef: ChangeDetectorRef) {}
+
+	onChange: (value: any) => void = () => {};
+
+	onTouched: () => void = () => {};
 
 	ngAfterContentChecked(): void {
 		this.cdRef.detectChanges();
@@ -132,11 +135,11 @@ export class AutocompleteComponent implements OnInit, OnChanges, AfterContentChe
 	 * @since 12.0.0
 	 */
 	ngOnInit() {
-		this.filteredOptions = this.inputFormGroup?.get('autocomplete')?.valueChanges.pipe(
+		this.filteredOptions = this.inputAutoComplete?.nativeElement.valueChanges.pipe(
 			startWith(''),
 			map((value) => (typeof value === 'string' ? value : value !== null ? value[this.bindLabel()] : '')),
 			map(
-				(propertyName) =>
+				(propertyName: string) =>
 					this.data()?.filter((option) => {
 						return typeof option === 'string'
 							? option?.toLowerCase().indexOf(propertyName.toLowerCase()) === 0
@@ -158,7 +161,7 @@ export class AutocompleteComponent implements OnInit, OnChanges, AfterContentChe
 	 */
 	clearInput(evt: any): void {
 		evt.stopPropagation();
-		this.inputFormGroup.get('autocomplete')?.reset();
+		this.value = undefined;
 		this.inputAutoComplete?.nativeElement.focus();
 	}
 
@@ -199,5 +202,23 @@ export class AutocompleteComponent implements OnInit, OnChanges, AfterContentChe
 	 */
 	emitSelectedValue($event: MatOptionSelectionChange) {
 		this.onSelectionChange.emit($event.source.value);
+	}
+
+	writeValue(obj: any): void {
+		if (this.formControl) this.formControl.setValue(obj);
+	}
+
+	registerOnChange(fn: any): void {
+		this.onChange = fn;
+		this.cdRef.detectChanges();
+	}
+
+	registerOnTouched(fn: any): void {
+		this.onTouched = fn;
+	}
+
+	onInputChange(event: Event) {
+		const target = event.target as HTMLInputElement;
+		this.onChange(target.value);
 	}
 }
